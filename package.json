@@ -9,10 +9,25 @@
   "dependencies": {
     "cors": "^2.8.6",
     "express": "^4.22.2",
-    "mysql": "^2.18.1"
+    "mysql": "^2.18.1",
+    "node": "^24.16.0"
   },
-  "keywords": ["notas", "nodejs", "express", "mysql"],
+  "keywords": [
+    "notas",
+    "nodejs",
+    "express",
+    "mysql"
+  ],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jacoboperezjaramillotrabajos-commits/notaswebsistema.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jacoboperezjaramillotrabajos-commits/notaswebsistema/issues"
+  },
+  "homepage": "https://github.com/jacoboperezjaramillotrabajos-commits/notaswebsistema#readme"
 }
