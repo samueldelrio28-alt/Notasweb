@@ -1,0 +1,18 @@
+{
+  "name": "notasweb",
+  "version": "1.0.0",
+  "description": "Aplicación de notas con backend Node.js y MySQL",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^4.22.2",
+    "mysql": "^2.18.1"
+  },
+  "keywords": ["notas", "nodejs", "express", "mysql"],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NotasWeb — Acceso</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-start:   #eef7ff;
+      --bg-end:     #d8ebff;
+      --accent:     #60a5fa;
+      --accent-dark:#2563eb;
+      --text:       #102a43;
+      --muted:      #5c7a96;
+      --dark-card:  rgba(15,23,42,0.92);
+      --dark-border:rgba(148,163,184,0.16);
+      --dark-input: #152238;
+      --shadow:     0 24px 50px rgba(15,23,42,0.14);
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(180deg, var(--bg-start) 0%, var(--bg-end) 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+    }
+    .bg-shape {
+      position: fixed; inset: 0;
+      background: url('https://app.haikei.app/api/shape/blob?background=ecf8ff&fill=9accff') no-repeat center;
+      background-size: cover;
+      filter: brightness(1.05) saturate(1.1);
+      z-index: 0;
+    }
+    .wrapper { position:relative; z-index:1; width:100%; max-width:440px; padding:16px; }
+    .auth-card {
+      background: var(--dark-card);
+      border-radius: 32px;
+      padding: 36px 32px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--dark-border);
+      color: #f1f5f9;
+      animation: rise .45s cubic-bezier(.22,1,.36,1) both;
+    }
+    @keyframes rise {
+      from { opacity:0; transform:translateY(20px) scale(.97); }
+      to   { opacity:1; transform:translateY(0)    scale(1); }
+    }
+    .brand { display:flex; align-items:center; gap:10px; margin-bottom:26px; }
+    .brand-icon {
+      width:40px; height:40px;
+      background: rgba(96,165,250,.18);
+      border: 1px solid rgba(96,165,250,.3);
+      border-radius: 12px;
+      display:flex; align-items:center; justify-content:center;
+      font-size: 18px;
+    }
+    .brand-name { font-size:20px; font-weight:700; color:#f8fafc; letter-spacing:-.3px; }
+    .brand-name span { color: var(--accent); }
+    .tab-row {
+      display:flex; gap:4px;
+      background: rgba(255,255,255,.06);
+      border-radius:16px; padding:4px; margin-bottom:28px;
+    }
+    .tab-btn {
+      flex:1; padding:9px 0; text-align:center;
+      font-size:14px; font-weight:600; color:#94a3b8;
+      border:none; background:transparent; border-radius:12px;
+      cursor:pointer; transition:all .2s;
+    }
+    .tab-btn.active {
+      background: rgba(96,165,250,.18);
+      border: 1px solid rgba(96,165,250,.3);
+      color: #fff;
+    }
+    .form-section { display:none; }
+    .form-section.active { display:block; }
+    .form-title { font-size:19px; font-weight:700; color:#f8fafc; margin-bottom:4px; }
+    .form-sub { font-size:13px; color:#64748b; margin-bottom:22px; }
+    .field { margin-bottom:15px; }
+    .field label {
+      display:block; font-size:12px; font-weight:600; color:#94a3b8;
+      text-transform:uppercase; letter-spacing:.5px; margin-bottom:7px;
+    }
+    .field input {
+      width:100%; background:var(--dark-input);
+      border:1px solid var(--dark-border); border-radius:14px;
+      padding:11px 15px; font-size:14px; font-family:inherit;
+      color:#e2e8f0; outline:none; transition:border-color .2s, box-shadow .2s;
+    }
+    .field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(96,165,250,.15);
+    }
+    .field input::placeholder { color:#2d4a6a; }
+    .btn-main {
+      width:100%; margin-top:6px;
+      background: var(--accent); color:#fff;
+      border:1px solid transparent; border-radius:999px;
+      padding:13px; font-size:14px; font-weight:700;
+      box-shadow: 0 14px 30px rgba(96,165,250,.22);
+      cursor:pointer; transition:background .2s, transform .1s;
+    }
+    .btn-main:hover  { background:#3b82f6; transform:translateY(-1px); }
+    .btn-main:active { transform:scale(.98); }
+    .btn-main:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+    .alert-box {
+      display:none; margin-top:14px; padding:10px 15px;
+      border-radius:12px; font-size:13px; font-weight:500; text-align:center;
+    }
+    .alert-box.error   { display:block; background:rgba(239,68,68,.12);  color:#fca5a5; border:1px solid rgba(239,68,68,.25); }
+    .alert-box.success { display:block; background:rgba(34,197,94,.12);   color:#86efac;  border:1px solid rgba(34,197,94,.25); }
+    .switch-link { text-align:center; margin-top:18px; font-size:13px; color:#64748b; }
+    .switch-link a { color:var(--accent); font-weight:600; text-decoration:none; cursor:pointer; }
+    .switch-link a:hover { text-decoration:underline; }
+    @media (max-width:460px) { .auth-card { padding:28px 22px; border-radius:24px; } }
+  </style>
+</head>
+<body>
+<div class="bg-shape"></div>
+<div class="wrapper">
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-icon">📝</div>
+      <div class="brand-name">Notas<span>Web</span></div>
+    </div>
+    <div class="tab-row">
+      <button class="tab-btn active" id="tab-login"  onclick="switchTab('login')">Iniciar sesión</button>
+      <button class="tab-btn"        id="tab-signup" onclick="switchTab('signup')">Registrarse</button>
+    </div>
+ 
+    <!-- LOGIN -->
+    <div class="form-section active" id="form-login">
+      <div class="form-title">Bienvenido de nuevo</div>
+      <div class="form-sub">Ingresa tus datos para continuar</div>
+      <div class="field">
+        <label>Correo</label>
+        <input type="email" id="l-email" placeholder="tu@correo.com" />
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input type="password" id="l-pass" placeholder="••••••••"
+               onkeydown="if(event.key==='Enter') doLogin()" />
+      </div>
+      <button class="btn-main" id="btn-login" onclick="doLogin()">Entrar</button>
+      <div class="alert-box" id="msg-login"></div>
+      <div class="switch-link">¿No tienes cuenta? <a onclick="switchTab('signup')">Regístrate gratis</a></div>
+    </div>
+ 
+    <!-- REGISTRO -->
+    <div class="form-section" id="form-signup">
+      <div class="form-title">Crear cuenta</div>
+      <div class="form-sub">Únete y empieza a organizar tus notas</div>
+      <div class="field">
+        <label>Nombre</label>
+        <input type="text" id="r-nombre" placeholder="Tu nombre completo" />
+      </div>
+      <div class="field">
+        <label>Correo</label>
+        <input type="email" id="r-email" placeholder="tu@correo.com" />
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input type="password" id="r-pass" placeholder="Mínimo 6 caracteres"
+               onkeydown="if(event.key==='Enter') doRegister()" />
+      </div>
+      <button class="btn-main" id="btn-reg" onclick="doRegister()">Crear cuenta</button>
+      <div class="alert-box" id="msg-reg"></div>
+      <div class="switch-link">¿Ya tienes cuenta? <a onclick="switchTab('login')">Inicia sesión</a></div>
+    </div>
+  </div>
+</div>
+<script>
+  if (localStorage.getItem('usuario')) window.location.href = '/index.html';
+ 
+  function switchTab(tab) {
+    ['login','signup'].forEach(t => {
+      document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+      document.getElementById('form-' + t).classList.toggle('active', t === tab);
+    });
+    clearMsgs();
+  }
+ 
+  function clearMsgs() {
+    document.querySelectorAll('.alert-box').forEach(el => { el.className = 'alert-box'; el.textContent = ''; });
+  }
+ 
+  function showMsg(id, texto, tipo) {
+    const el = document.getElementById(id);
+    el.textContent = texto;
+    el.className = 'alert-box ' + tipo;
+  }
+ 
+  function setBtn(btnId, cargando, label) {
+    const btn = document.getElementById(btnId);
+    btn.disabled = cargando;
+    btn.textContent = cargando ? 'Cargando...' : label;
+  }
+ 
+  async function doLogin() {
+    const email = document.getElementById('l-email').value.trim();
+    const pass  = document.getElementById('l-pass').value;
+    if (!email || !pass) return showMsg('msg-login', 'Completa todos los campos.', 'error');
+    setBtn('btn-login', true, 'Entrar');
+    try {
+      const res  = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emailUser: email, contraUser: pass })
+      });
+      const data = await res.json();
+      if (!res.ok) return showMsg('msg-login', data.error || 'Correo o contraseña incorrectos.', 'error');
+      localStorage.setItem('usuario', JSON.stringify(data.usuario));
+      showMsg('msg-login', '¡Bienvenido! Redirigiendo…', 'success');
+      setTimeout(() => window.location.href = '/index.html', 900);
+    } catch { showMsg('msg-login', 'No se pudo conectar con el servidor.', 'error'); }
+    finally  { setBtn('btn-login', false, 'Entrar'); }
+  }
+ 
+  async function doRegister() {
+    const nombre = document.getElementById('r-nombre').value.trim();
+    const email  = document.getElementById('r-email').value.trim();
+    const pass   = document.getElementById('r-pass').value;
+    if (!nombre || !email || !pass) return showMsg('msg-reg', 'Completa todos los campos.', 'error');
+    if (pass.length < 6) return showMsg('msg-reg', 'La contraseña debe tener al menos 6 caracteres.', 'error');
+    setBtn('btn-reg', true, 'Crear cuenta');
+    try {
+      const res  = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombreUser: nombre, emailUser: email, contraUser: pass })
+      });
+      const data = await res.json();
+      if (!res.ok) return showMsg('msg-reg', data.error || 'Error al registrarse.', 'error');
+      showMsg('msg-reg', '¡Cuenta creada! Inicia sesión ahora.', 'success');
+      setTimeout(() => switchTab('login'), 1400);
+    } catch { showMsg('msg-reg', 'No se pudo conectar con el servidor.', 'error'); }
+    finally  { setBtn('btn-reg', false, 'Crear cuenta'); }
+  }
+</script>
+</body>
+</html>
