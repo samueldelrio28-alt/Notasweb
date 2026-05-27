@@ -19,7 +19,7 @@
             </div>
             <div class="d-flex justify-content-between align-items-center">
               <button class="btn btn-primary" type="submit">Crear cuenta</button>
-              <a href="/views/login.html" class="text-decoration-none">Ya tengo cuenta</a>
+              <a href="/login.html" class="text-decoration-none">Ya tengo cuenta</a>
             </div>
             <div id="signupMsg" class="mt-3 text-danger" style="display:none"></div>
           </form>
@@ -43,11 +43,12 @@
     msg.style.display = 'none';
 
     try {
-      const data = await postJSON('/api/auth/signup', { nombre, correo, password });
-      if (data && data.token) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        window.location.href = '/';
+      const data = await postJSON('/api/register', { nombreUser: nombre, emailUser: correo, contraUser: password });
+      if (data && data.message) {
+        msg.textContent = 'Cuenta creada correctamente. Ahora inicia sesión.';
+        msg.style.color = '#16a34a';
+        msg.style.display = 'block';
+        setTimeout(() => window.location.href = '/login.html', 1400);
       } else if (data && data.error) {
         msg.textContent = data.error || 'Error al crear cuenta';
         msg.style.display = 'block';

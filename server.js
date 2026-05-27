@@ -8,12 +8,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "publico")));
-app.use(express.static(path.join(__dirname, "vistas")));
 app.get("/index.js", (_req, res) => res.sendFile(path.join(__dirname, "index.js")));
 
 // Rutas de vistas
-app.get("/",           (_req, res) => res.sendFile(path.join(__dirname, "vistas", "login.html")));
-app.get("/login.html", (_req, res) => res.sendFile(path.join(__dirname, "vistas", "login.html")));
+app.get("/",           (_req, res) => res.sendFile(path.join(__dirname, "login.html")));
+app.get("/login.html", (_req, res) => res.sendFile(path.join(__dirname, "login.html")));
+app.get("/signup.html",(_req, res) => res.sendFile(path.join(__dirname, "signup.html")));
 app.get("/index.html", (_req, res) => res.sendFile(path.join(__dirname, "index.html")));
 
 // AUTH
