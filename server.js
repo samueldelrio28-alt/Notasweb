@@ -15,6 +15,14 @@ app.get("/login.html", (_req, res) => res.sendFile(path.join(__dirname, "login.h
 app.get("/signup.html", (_req, res) => res.sendFile(path.join(__dirname, "signup.html")));
 app.get("/index.html", (_req, res) => res.sendFile(path.join(__dirname, "index.html")));
 
+function formatearUsuario(usuario) {
+  return {
+    id_usuarios: usuario.id_usuarios,
+    nombreUser: usuario.nombreuser,
+    emailUser: usuario.emailuser
+  };
+}
+
 app.post("/api/register", async (req, res) => {
   const { nombreUser, emailUser, contraUser } = req.body;
 
@@ -25,7 +33,7 @@ app.post("/api/register", async (req, res) => {
   const existe = await supabase
     .from("usuarios")
     .select("id_usuarios")
-    .eq("emailUser", emailUser)
+    .eq("emailuser", emailUser)
     .limit(1);
 
   if (existe.error) {
@@ -39,9 +47,9 @@ app.post("/api/register", async (req, res) => {
   const nuevoUsuario = await supabase
     .from("usuarios")
     .insert({
-      nombreUser,
-      emailUser,
-      contraUser,
+      nombreuser: nombreUser,
+      emailuser: emailUser,
+      contrauser: contraUser,
       estado: 1
     })
     .select("id_usuarios")
@@ -63,9 +71,9 @@ app.post("/api/login", async (req, res) => {
 
   const usuario = await supabase
     .from("usuarios")
-    .select("id_usuarios,nombreUser,emailUser")
-    .eq("emailUser", emailUser)
-    .eq("contraUser", contraUser)
+    .select("id_usuarios,nombreuser,emailuser")
+    .eq("emailuser", emailUser)
+    .eq("contrauser", contraUser)
     .eq("estado", 1)
     .maybeSingle();
 
@@ -77,7 +85,7 @@ app.post("/api/login", async (req, res) => {
     return res.status(401).json({ error: "Correo o contrasena incorrectos." });
   }
 
-  res.json({ usuario: usuario.data });
+  res.json({ usuario: formatearUsuario(usuario.data) });
 });
 
 app.get("/api/notas", async (req, res) => {
