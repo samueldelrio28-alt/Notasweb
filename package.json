@@ -1,27 +1,26 @@
 {
   "name": "notasweb",
   "version": "1.0.0",
-  "description": "Aplicación de notas con backend Node.js y MySQL",
+  "description": "Aplicacion de notas con backend Node.js y Supabase",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "check": "node --check server.js && node --check configsql/supabase_notas.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.106.2",
     "cors": "^2.8.6",
-    "express": "^4.22.2",
-    "mysql": "^2.18.1",
-    "node": "^24.16.0"
+    "express": "^4.22.2"
   },
   "keywords": [
     "notas",
     "nodejs",
     "express",
-    "mysql"
+    "supabase"
   ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
-  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jacoboperezjaramillotrabajos-commits/notaswebsistema.git"

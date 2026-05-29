@@ -1,8 +1,8 @@
 # NotasWeb
 
-Aplicación de notas con backend Node.js y MySQL.
+Aplicacion de notas con backend Node.js y Supabase.
 
-## Instalación
+## Instalacion
 
 ```
 npm install
@@ -13,22 +13,24 @@ npm start
 
 ## Base de datos
 
-El servidor espera una base de datos MySQL en `localhost:3306` con el nombre `notasweb_db`.
+El servidor usa Supabase como base de datos.
 
-- Host: `127.0.0.1`
-- Puerto: `3306`
-- Usuario: `root`
-- Contraseña: "";
+1. Crea un proyecto en Supabase.
+2. Abre SQL Editor.
+3. Ejecuta el archivo `supabase.sql`.
+4. En Vercel agrega estas variables de entorno si quieres ocultar las llaves:
 
-Para cambiar la configuración, usa variables de entorno:
 ```
-DB_HOST=localhost DB_USER=root DB_PASSWORD='' DB_NAME=notasweb_db npm start
+SUPABASE_URL=https://ceazbepzihcvyqzmwqrf.supabase.co
+SUPABASE_ANON_KEY=sb_publishable_EKhpJl2AIbQLlmJSozfjlQ_nx7eXhfN
 ```
+
+Si no agregas variables, el proyecto ya trae esos datos en `configsql/supabase_notas.js`.
 
 ## API
 
 - `POST /api/register` - Registrar usuario
-- `POST /api/login` - Iniciar sesión
+- `POST /api/login` - Iniciar sesion
 - `GET /api/notas?id_usuario=X` - Obtener notas activas
 - `GET /api/notas/archivadas?id_usuario=X` - Obtener notas archivadas
 - `POST /api/notas` - Crear nota

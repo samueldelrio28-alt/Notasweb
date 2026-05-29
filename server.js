@@ -1,7 +1,7 @@
-const express    = require("express");
-const cors       = require("cors");
-const path       = require("path");
-const conexion   = require('./configsql/db_notas.js');
+const express = require("express");
+const cors = require("cors");
+const path = require("path");
+const supabase = require("./configsql/supabase_notas.js");
 
 const app = express();
 
@@ -10,115 +10,184 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "publico")));
 app.get("/index.js", (_req, res) => res.sendFile(path.join(__dirname, "index.js")));
 
-// Rutas de vistas
-app.get("/",           (_req, res) => res.sendFile(path.join(__dirname, "login.html")));
+app.get("/", (_req, res) => res.sendFile(path.join(__dirname, "login.html")));
 app.get("/login.html", (_req, res) => res.sendFile(path.join(__dirname, "login.html")));
-app.get("/signup.html",(_req, res) => res.sendFile(path.join(__dirname, "signup.html")));
+app.get("/signup.html", (_req, res) => res.sendFile(path.join(__dirname, "signup.html")));
 app.get("/index.html", (_req, res) => res.sendFile(path.join(__dirname, "index.html")));
 
-// AUTH
-// POST /api/register
-app.post("/api/register", (req, res) => {
+app.post("/api/register", async (req, res) => {
   const { nombreUser, emailUser, contraUser } = req.body;
 
-  if (!nombreUser || !emailUser || !contraUser)
+  if (!nombreUser || !emailUser || !contraUser) {
     return res.status(400).json({ error: "Todos los campos son obligatorios." });
+  }
 
-  const checkSql = "SELECT id_usuarios FROM usuarios WHERE emailUser = ?";
-  conexion.query(checkSql, [emailUser], (err, rows) => {
-    if (err)       return res.status(500).json({ error: "Error del servidor." });
-    if (rows.length) return res.status(409).json({ error: "El correo ya está registrado." });
+  const existe = await supabase
+    .from("usuarios")
+    .select("id_usuarios")
+    .eq("emailUser", emailUser)
+    .limit(1);
 
-    const sql = "INSERT INTO usuarios (nombreUser, emailUser, contraUser, fecha_registroUser, estado) VALUES (?, ?, ?, NOW(), 1)";
-    conexion.query(sql, [nombreUser, emailUser, contraUser], (err2, result) => {
-      if (err2) return res.status(500).json({ error: "Error al crear el usuario." });
-      res.status(201).json({ message: "Usuario creado.", id: result.insertId });
-    });
-  });
+  if (existe.error) {
+    return res.status(500).json({ error: "Error del servidor." });
+  }
+
+  if (existe.data.length > 0) {
+    return res.status(409).json({ error: "El correo ya esta registrado." });
+  }
+
+  const nuevoUsuario = await supabase
+    .from("usuarios")
+    .insert({
+      nombreUser,
+      emailUser,
+      contraUser,
+      estado: 1
+    })
+    .select("id_usuarios")
+    .single();
+
+  if (nuevoUsuario.error) {
+    return res.status(500).json({ error: "Error al crear el usuario." });
+  }
+
+  res.status(201).json({ message: "Usuario creado.", id: nuevoUsuario.data.id_usuarios });
 });
 
-// POST /api/login
-app.post("/api/login", (req, res) => {
+app.post("/api/login", async (req, res) => {
   const { emailUser, contraUser } = req.body;
 
-  if (!emailUser || !contraUser)
-    return res.status(400).json({ error: "Correo y contraseña son obligatorios." });
+  if (!emailUser || !contraUser) {
+    return res.status(400).json({ error: "Correo y contrasena son obligatorios." });
+  }
 
-  const sql = "SELECT id_usuarios, nombreUser, emailUser FROM usuarios WHERE emailUser = ? AND contraUser = ? AND estado = 1";
-  conexion.query(sql, [emailUser, contraUser], (err, rows) => {
-    if (err)         return res.status(500).json({ error: "Error del servidor." });
-    if (!rows.length) return res.status(401).json({ error: "Correo o contraseña incorrectos." });
+  const usuario = await supabase
+    .from("usuarios")
+    .select("id_usuarios,nombreUser,emailUser")
+    .eq("emailUser", emailUser)
+    .eq("contraUser", contraUser)
+    .eq("estado", 1)
+    .maybeSingle();
 
-    res.json({ usuario: rows[0] });
-  });
+  if (usuario.error) {
+    return res.status(500).json({ error: "Error del servidor." });
+  }
+
+  if (!usuario.data) {
+    return res.status(401).json({ error: "Correo o contrasena incorrectos." });
+  }
+
+  res.json({ usuario: usuario.data });
 });
 
-// NOTAS
-// GET /api/notas?id_usuario=X
-app.get("/api/notas", (req, res) => {
+app.get("/api/notas", async (req, res) => {
   const { id_usuario } = req.query;
-  if (!id_usuario) return res.status(400).json({ error: "Falta id_usuario." });
+  if (!id_usuario) {
+    return res.status(400).json({ error: "Falta id_usuario." });
+  }
 
-  const sql = "SELECT id_nota, titulo, contenido, fecha_creacion FROM notas WHERE id_usuario = ? AND estado = 1 ORDER BY fecha_creacion DESC";
-  conexion.query(sql, [id_usuario], (err, rows) => {
-    if (err) return res.status(500).json({ error: "Error al obtener las notas." });
-    res.json(rows);
-  });
+  const notas = await supabase
+    .from("notas")
+    .select("id_nota,titulo,contenido,color,fecha_creacion")
+    .eq("id_usuario", id_usuario)
+    .eq("estado", 1)
+    .order("fecha_creacion", { ascending: false });
+
+  if (notas.error) {
+    return res.status(500).json({ error: "Error al obtener las notas." });
+  }
+
+  res.json(notas.data);
 });
 
-// GET /api/notas/archivadas?id_usuario=X
-app.get("/api/notas/archivadas", (req, res) => {
+app.get("/api/notas/archivadas", async (req, res) => {
   const { id_usuario } = req.query;
-  if (!id_usuario) return res.status(400).json({ error: "Falta id_usuario." });
+  if (!id_usuario) {
+    return res.status(400).json({ error: "Falta id_usuario." });
+  }
 
-  const sql = "SELECT id_nota, titulo, contenido, fecha_creacion FROM notas WHERE id_usuario = ? AND estado = 0 ORDER BY fecha_creacion DESC";
-  conexion.query(sql, [id_usuario], (err, rows) => {
-    if (err) return res.status(500).json({ error: "Error al obtener las archivadas." });
-    res.json(rows);
-  });
+  const notas = await supabase
+    .from("notas")
+    .select("id_nota,titulo,contenido,color,fecha_creacion")
+    .eq("id_usuario", id_usuario)
+    .eq("estado", 0)
+    .order("fecha_creacion", { ascending: false });
+
+  if (notas.error) {
+    return res.status(500).json({ error: "Error al obtener las archivadas." });
+  }
+
+  res.json(notas.data);
 });
 
-// POST /api/notas
-app.post("/api/notas", (req, res) => {
-  const { id_usuario, titulo, contenido } = req.body;
+app.post("/api/notas", async (req, res) => {
+  const { id_usuario, titulo, contenido, color } = req.body;
 
-  if (!id_usuario || !titulo || !contenido)
-    return res.status(400).json({ error: "id_usuario, título y contenido son obligatorios." });
+  if (!id_usuario || !titulo || !contenido) {
+    return res.status(400).json({ error: "id_usuario, titulo y contenido son obligatorios." });
+  }
 
-  const sql = "INSERT INTO notas (id_usuario, titulo, contenido, fecha_creacion, estado) VALUES (?, ?, ?, NOW(), 1)";
-  conexion.query(sql, [id_usuario, titulo, contenido], (err, result) => {
-    if (err) return res.status(500).json({ error: "Error al crear la nota." });
-    res.status(201).json({ message: "Nota creada.", id: result.insertId });
-  });
+  const nota = await supabase
+    .from("notas")
+    .insert({
+      id_usuario,
+      titulo,
+      contenido,
+      color: color || "#e8f4ff",
+      estado: 1
+    })
+    .select("id_nota")
+    .single();
+
+  if (nota.error) {
+    return res.status(500).json({ error: "Error al crear la nota." });
+  }
+
+  res.status(201).json({ message: "Nota creada.", id: nota.data.id_nota });
 });
 
-// PATCH /api/notas/:id/archivar
-app.patch("/api/notas/:id/archivar", (req, res) => {
-  conexion.query("UPDATE notas SET estado = 0 WHERE id_nota = ?", [req.params.id], (err) => {
-    if (err) return res.status(500).json({ error: "Error al archivar la nota." });
-    res.json({ message: "Nota archivada." });
-  });
+app.patch("/api/notas/:id/archivar", async (req, res) => {
+  const nota = await supabase
+    .from("notas")
+    .update({ estado: 0 })
+    .eq("id_nota", req.params.id);
+
+  if (nota.error) {
+    return res.status(500).json({ error: "Error al archivar la nota." });
+  }
+
+  res.json({ message: "Nota archivada." });
 });
 
-// PATCH /api/notas/:id/restaurar
-app.patch("/api/notas/:id/restaurar", (req, res) => {
-  conexion.query("UPDATE notas SET estado = 1 WHERE id_nota = ?", [req.params.id], (err) => {
-    if (err) return res.status(500).json({ error: "Error al restaurar la nota." });
-    res.json({ message: "Nota restaurada." });
-  });
+app.patch("/api/notas/:id/restaurar", async (req, res) => {
+  const nota = await supabase
+    .from("notas")
+    .update({ estado: 1 })
+    .eq("id_nota", req.params.id);
+
+  if (nota.error) {
+    return res.status(500).json({ error: "Error al restaurar la nota." });
+  }
+
+  res.json({ message: "Nota restaurada." });
 });
 
-// DELETE /api/notas/:id
-app.delete("/api/notas/:id", (req, res) => {
-  conexion.query("DELETE FROM notas WHERE id_nota = ?", [req.params.id], (err) => {
-    if (err) return res.status(500).json({ error: "Error al eliminar la nota." });
-    res.json({ message: "Nota eliminada." });
-  });
+app.delete("/api/notas/:id", async (req, res) => {
+  const nota = await supabase
+    .from("notas")
+    .delete()
+    .eq("id_nota", req.params.id);
+
+  if (nota.error) {
+    return res.status(500).json({ error: "Error al eliminar la nota." });
+  }
+
+  res.json({ message: "Nota eliminada." });
 });
 
 const PORT = process.env.PORT || 3000;
 if (require.main === module) {
-  app.listen(PORT, () => console.log(`✓ Servidor en http://localhost:${PORT}`));
+  app.listen(PORT, () => console.log("Servidor en http://localhost:" + PORT));
 }
 
 module.exports = app;
